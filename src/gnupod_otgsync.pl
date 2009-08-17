@@ -46,7 +46,7 @@ if($opts{top4secret} && !$opts{nosync}) {
  exit(0);
 }
 elsif($opts{top4secret}) { #&& $opts{nosync}
- print "> On-The-Go sync disabled by configuration, skipping work...\n";
+ warn "> On-The-Go sync disabled by configuration, skipping work...\n";
  exit(0);
 }
 else {
