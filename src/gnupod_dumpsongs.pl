@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Getopt::Long;
+use GNUpod::FooBar;
+# GNUpod::XMLhelper is weird and undocumented. Fiddle with the XML directly.
+use XML::LibXML;
+
+use vars qw( %opts );
+
+$opts{mount} = $ENV{IPOD_MOUNTPOINT};
+$opts{delim} = "\t";
+GetOptions(\%opts, "mount|m=s", "delim|d=s", "playlist=s");
+
+# Reads config from rcfiles. Doesn't overwrite options that already exist.
+# The third arg allows config specific to this program, eg with
+# gnupod_dumpsongs.delim = |
+# (I don't think there's any way of including leading whitespace, which is a
+# problem for delim.)
+GNUpod::FooBar::GetConfig(\%opts, { mount => 's', delim => 's' },
+			  "gnupod_dumpsongs");
+
+my $con = GNUpod::FooBar::connect(\%opts);
+die $con->{status}, "\n" if $con->{status};
+
+my $gtdb = $con->{xml};
+my @atrs = @ARGV;
+
+my $p = XML::LibXML->new();
+
+my $doc = $p->parse_file($gtdb)->getDocumentElement();
+my @songs = $doc->getElementsByTagName("file")->get_nodelist();
+
+if (not defined $opts{playlist}) {
+    foreach my $song (@songs) {
+	print_song($song);
+    }
+}
+else {
+    my @pls = $doc->getElementsByTagName("playlist")->get_nodelist();
+    my ($pl) = grep { $_->getAttribute("name") eq $opts{playlist} } @pls;
+    my @adds = $pl->getElementsByTagName("add")->get_nodelist();
+    my @ids = map { $_->getAttribute("id") } @adds;
+    
+    for my $id (@ids) {
+	print_song(song_by_id($id));
+    }
+}
+
+sub song_by_id {
+    my ($id) = @_;
+    my @f = grep { $_->getAttribute("id") eq $id } @songs;
+    return $f[0];
+}
+
+sub print_song {
+    my ($song) = @_;
+    my $first = 1;
+    foreach my $atr (@atrs) {
+	if ($first) {
+	    $first = 0;
+	} else {
+	    print $opts{delim};
+	}
+	
+	my $s = "";
+	if ($atr eq ":realpath") {
+	    my $p = $song->getAttribute("path");
+	    $p =~ tr|:|/|;
+	    $s = $opts{mount}.$p;
+	} else {
+	    $s = $song->getAttribute($atr);
+	}
+	print $s if defined $s;
+    }
+    print "\n";
+}    
+	
+# These are called by XMLhelper::doxml(), but we don't need them to do anything.
+sub newfile {}
+sub newpl {
+    GNUpod::XMLhelper::mkfile($_[0],{$_[2]."name"=>$_[1]});
+}
