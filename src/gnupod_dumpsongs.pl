@@ -1,4 +1,5 @@
-#!/usr/bin/perl
+###__PERLBIN__###
+
 use warnings;
 use strict;
 use Getopt::Long;
@@ -75,9 +76,3 @@ sub print_song {
     }
     print "\n";
 }    
-	
-# These are called by XMLhelper::doxml(), but we don't need them to do anything.
-sub newfile {}
-sub newpl {
-    GNUpod::XMLhelper::mkfile($_[0],{$_[2]."name"=>$_[1]});
-}
