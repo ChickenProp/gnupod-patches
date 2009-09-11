@@ -11,7 +11,7 @@ use vars qw( %opts );
 
 $opts{mount} = $ENV{IPOD_MOUNTPOINT};
 $opts{delim} = "\t";
-GetOptions(\%opts, "mount|m=s", "delim|d=s", "playlist=s");
+GetOptions(\%opts, "mount|m=s", "file|f=s", "delim|d=s", "playlist=s");
 
 # Reads config from rcfiles. Doesn't overwrite options that already exist.
 # The third arg allows config specific to this program, eg with
@@ -21,10 +21,13 @@ GetOptions(\%opts, "mount|m=s", "delim|d=s", "playlist=s");
 GNUpod::FooBar::GetConfig(\%opts, { mount => 's', delim => 's' },
 			  "gnupod_dumpsongs");
 
-my $con = GNUpod::FooBar::connect(\%opts);
-die $con->{status}, "\n" if $con->{status};
+my $gtdb = $opts{file};
+if (!$gtdb) {
+    my $con = GNUpod::FooBar::connect(\%opts);
+    die $con->{status}, "\n" if $con->{status};
+    $gtdb = $con->{xml};
+}
 
-my $gtdb = $con->{xml};
 my @atrs = @ARGV;
 
 my $p = XML::LibXML->new();
