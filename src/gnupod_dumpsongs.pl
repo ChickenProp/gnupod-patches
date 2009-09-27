@@ -71,7 +71,9 @@ sub print_song {
 	}
 	
 	my $s = "";
-	if ($atr eq ":realpath") {
+	if ($atr =~ /^:/) {
+	    $s = $song->getAttribute(substr($atr,1))
+	} elsif ($atr eq "realpath") {
 	    my $p = $song->getAttribute("path");
 	    $p =~ tr|:|/|;
 	    $s = $opts{mount}.$p;
