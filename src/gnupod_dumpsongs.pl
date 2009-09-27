@@ -29,6 +29,9 @@ if (!$gtdb) {
 }
 
 my @atrs = @ARGV;
+if (! @atrs) {
+    @atrs = qw(id rating playcount title);
+}
 
 my $p = XML::LibXML->new();
 
