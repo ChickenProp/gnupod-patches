@@ -72,7 +72,11 @@ sub print_song {
 	
 	my $s = "";
 	if ($atr =~ /^:/) {
-	    $s = $song->getAttribute(substr($atr,1))
+	    $s = $song->getAttribute(substr($atr,1));
+	} elsif ($atr eq "rating") {
+	    $s = $song->getAttribute("rating") || 0;
+	} elsif ($atr eq "stars") {
+	    $s = ($song->getAttribute("rating") || 0)/20;
 	} elsif ($atr eq "unixpath") {
 	    my $p = $song->getAttribute("path");
 	    $p =~ tr|:|/|;
