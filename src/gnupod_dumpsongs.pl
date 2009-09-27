@@ -81,6 +81,17 @@ sub print_song {
 	    my $p = $song->getAttribute("path");
 	    $p =~ tr|:|/|;
 	    $s = $opts{mount}.$p;
+	} elsif ($atr eq "lastplay") {
+	    my $t = $song->getAttribute("lastplay");
+	    if (defined $t) {
+		$t -= 2082848400; # convert mac to unix time.
+		my ($sec,$min,$hour,$mday,$mon,$year) = localtime($t);
+		$year += 1900;
+		$s = sprintf("%04d-%02d-%02d %02d:%02d:%02d",
+			     $year, $mon+1, $mday, $hour, $min, $sec);
+	    } else {
+		$s = '-'x19;
+	    }
 	} else {
 	    $s = $song->getAttribute($atr);
 	}
