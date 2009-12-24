@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use warnings;
+use warnings qw(FATAL all);
 use strict;
 use Getopt::Long;
 use GNUpod::FooBar;
@@ -35,8 +35,8 @@ my @attrs = @ARGV;
 usage() if !@attrs;
 
 my $p = XML::LibXML->new();
-
-my $doc = $p->parse_file($gtdb)->getDocumentElement();
+my $xml = $p->parse_file($gtdb);
+my $doc = $xml->getDocumentElement();
 my @songs = $doc->getElementsByTagName("file")->get_nodelist();
 
 while (my $line = <STDIN>) {
@@ -47,7 +47,8 @@ while (my $line = <STDIN>) {
 	}
 }
 
-print $doc->toString();
+open(my $out, '>', $gtdb);
+$xml->toFH($out);
 
 sub process_song {
 	my ($song, $match, @update) = @_;
@@ -73,10 +74,9 @@ sub getattr {
 		no strict 'refs';
 		my $subname = "getattr_$attr";
 		$subname =~ tr/-/_/;
-		my $sub = \&$subname;
 		
-		if (defined &$sub) {
-			&$sub($song);
+		if (defined &$subname) {
+			&$subname($song);
 		}
 		else {
 			$song->getAttribute($attr);
