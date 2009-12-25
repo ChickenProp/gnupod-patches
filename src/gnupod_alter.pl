@@ -47,7 +47,10 @@ while (my $line = <STDIN>) {
 	}
 }
 
+# We queue the copy operations and do them all at the end, so that if we need
+# to die, nothing's changed.
 copy_files();
+
 open(my $out, '>', $gtdb);
 $xml->toFH($out);
 
