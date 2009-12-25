@@ -47,6 +47,7 @@ while (my $line = <STDIN>) {
 	}
 }
 
+copy_files();
 open(my $out, '>', $gtdb);
 $xml->toFH($out);
 
@@ -91,7 +92,16 @@ sub setattr {
 		$song->setAttribute(substr($attr,1), $new);
 	}
 	else {
-		$song->setAttribute($attr, $new);
+		no strict 'refs';
+		my $subname = "setattr_$attr";
+		$subname =~ tr/-/_/;
+		
+		if (defined &$subname) {
+			&$subname($song, $new);
+		}
+		else {
+			$song->setAttribute($attr, $new);
+		}
 	}
 }
 
@@ -100,8 +110,34 @@ sub matchattr {
 	return ($match eq getattr($song, $attr));
 }
 
+{
+	my @moves = ();
+	sub schedule_copy {
+		#print "pushing @_\n";
+		push @moves, [@_];
+	}
+
+	sub copy_files {
+		for my $m (@moves) {
+			print "copying $m->[0] to $m->[1]\n";
+		}
+	}
+}
+
 sub getattr_rating {
 	$_[0]->getAttribute("rating") || 0;
+}
+
+sub getattr_unixpath {
+	my $p = $_[0]->getAttribute("path");
+	$p =~ tr|:|/|;
+	return $opts{mount}.$p;
+}
+
+sub setattr_file {
+	my ($song, $new) = @_;
+	my $old = getattr($song, "unixpath");
+	schedule_copy($new, $old);
 }
 
 
