@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+###__PERLBIN__###
 
 use warnings qw(FATAL all);
 use strict;
