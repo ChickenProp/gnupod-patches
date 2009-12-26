@@ -6,6 +6,7 @@ use Getopt::Long;
 use GNUpod::FooBar;
 # GNUpod::XMLhelper is weird and undocumented. Fiddle with the XML directly.
 use XML::LibXML;
+use File::Copy;
 
 use vars qw( %opts );
 
@@ -21,11 +22,16 @@ GetOptions(\%opts, "mount|m=s", "file|f=s", "delim|d=s");
 GNUpod::FooBar::GetConfig(\%opts, { mount => 's', delim => 's' },
 			  "gnupod_alter");
 
-my $gtdb = $opts{file};
-if (!$gtdb) {
+my $ipodp = !exists($opts{file});
+my $gtdb;
+
+if ($ipodp) {
 	my $con = GNUpod::FooBar::connect(\%opts);
 	die $con->{status}, "\n" if $con->{status};
 	$gtdb = $con->{xml};
+}
+else {
+	$gtdb = $opts{file};
 }
 
 my $filter = shift;
@@ -123,6 +129,8 @@ sub matchattr {
 	sub copy_files {
 		for my $m (@moves) {
 			print "copying $m->[0] to $m->[1]\n";
+
+			copy($m->[0], $m->[1]) if $ipodp;
 		}
 	}
 }
@@ -156,6 +164,11 @@ Beatles".
 
 % echo "80\t100" | $0 rating rating
 Changes all songs with 4-star ratings to have 5-star ratings.
+
+% echo "123\tmusic.mp3" | $0 id file
+Copy music.mp3 to the ipod and set song with id 123 to play it.
+(In fact, to avoid cluttering the ipod with dead files, this overwrites the
+original file that track 123 was playing from.)
 
 % echo "Queen\tmusic/queen" | $0 artist file-from-dir
 For every song by Queen, update the file on the ipod to an appropriate one from
