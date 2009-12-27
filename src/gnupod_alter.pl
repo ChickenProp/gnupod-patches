@@ -153,9 +153,19 @@ sub setattr_file {
 
 
 sub usage {
-    print <<"EOT";
-Usage: $0 filter attr1 ...
+	print <<"EOT";
+Usage: $0 [-f file] [-d delimeter] [-m mountpoint] filter attr1 ...
 Currently the only thorough documentation is the source code.
+
+If -f is passed, use the given file instead of the GNUtunesDB located on the
+ipod. In this case, no files will be updated, but there will still be a message
+saying they're getting updated.
+
+If -d is passed, it provides a pattern to split input fields on. Default is tab.
+
+-m supplies a mountpoint for the ipod. If not specified, the same default
+ behaviour applies as for the rest of gnupod.
+
 Illustrative examples:
 
 % echo "739\tHello, Goodbye\tThe Beatles" | $0 id title artist
@@ -171,10 +181,11 @@ Copy music.mp3 to the ipod and set song with id 123 to play it.
 original file that track 123 was playing from.)
 
 % echo "Queen\tmusic/queen" | $0 artist file-from-dir
+(Not yet implemented.)
 For every song by Queen, update the file on the ipod to an appropriate one from
 the directory music/queen. "Appropriate" means with the same title, artist and
 track number.
 EOT
 
-    exit 1;
+	exit 1;
 }
