@@ -4,6 +4,7 @@ use warnings qw(FATAL all);
 use strict;
 use Getopt::Long;
 use GNUpod::FooBar;
+use GNUpod::FileMagic;
 # GNUpod::XMLhelper is weird and undocumented. Fiddle with the XML directly.
 use XML::LibXML;
 use File::Copy;
@@ -146,11 +147,47 @@ sub getattr_unixpath {
 }
 
 sub setattr_file {
-	my ($song, $new) = @_;
-	my $old = getattr($song, "unixpath");
-	schedule_copy($new, $old);
+	my ($song, $from) = @_;
+	my $to = getattr($song, "unixpath");
+	schedule_copy($from, $to);
 }
 
+sub setattr_file_from_dir {
+	my ($song, $dir) = @_;
+
+	if (! -d $dir) {
+		die "$dir is not a directory.\n";
+	}
+
+	my $tit = $song->getAttribute("title");
+	my $art = $song->getAttribute("artist");
+	my $num = $song->getAttribute("songnum");
+
+	for my $f (<$dir/*>) {
+		my %m = metadata($f);
+		if ($m{title} eq $tit
+		    && $m{artist} eq $art
+		    && $m{songnum} eq $num)
+		{
+			schedule_copy($f, getattr($song, "unixpath"));
+			last;
+		}
+	}
+}
+
+{
+	my %files = ();
+	sub metadata {
+		my ($f) = @_;
+		if (exists $files{$f}) {
+			return %{$files{$f}};
+		}
+		
+		my ($meta, $media, $conv) = GNUpod::FileMagic::wtf_is($f, undef, undef);
+		$files{$f} = $meta;
+		return %$meta;
+	}
+}
 
 sub usage {
 	print <<"EOT";
