@@ -218,7 +218,6 @@ Copy music.mp3 to the ipod and set song with id 123 to play it.
 original file that track 123 was playing from.)
 
 % echo "Queen\tmusic/queen" | $0 artist file-from-dir
-(Not yet implemented.)
 For every song by Queen, update the file on the ipod to an appropriate one from
 the directory music/queen. "Appropriate" means with the same title, artist and
 track number.
