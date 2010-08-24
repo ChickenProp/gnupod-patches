@@ -148,14 +148,14 @@ sub StartItunesDBSync {
 	if(-x $XBIN) {
 		{
 			local  $ENV{IPOD_MOUNTPOINT} = $con->{mountpoint};
-			print "> GNUtunesDB sync needed...\n";
+			warn "> GNUtunesDB sync needed...\n";
 			if(system("$XBIN > /dev/null")) {
 				die "Unexpected die of $XBIN\n
 				You can disable auto-sync (=autorun of $XBIN)
 				by removing '$con->{etc}/.itunesdb_md5'\n";
 			} 
 		}
-		print "> GNUtunesDB synced\n";
+		warn "> GNUtunesDB synced\n";
 	}
 	else {
 		warn "FooBar.pm: Could not execute $XBIN, autosync SKIPPED!\n";
@@ -174,12 +174,13 @@ sub StartOnTheGoSync {
 		{
 			local $ENV{IPOD_MOUNTPOINT} = $con->{mountpoint};
 			
-			print "> On-The-Go data sync needed...\n";
+			warn "> On-The-Go data sync needed...\n";
 			if(system("$XBIN --top4secret")) {
 				warn "** UUUPS **: $XBIN died! On-The-Go list lost, sorry!\n";
 			}
 			else {
-				print "> On-The-Go data synced\n";
+				warn "> On-The-Go data synced\n";
+				warn "> Remember to run mktunes.pl!\n";
 			}
 			
 		}

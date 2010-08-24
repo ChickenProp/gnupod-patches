@@ -41,7 +41,7 @@ $| = 1;
 my $xml_files_parsed=0;
 my $gtdb = {};
 
-print "tunes2pod.pl Version ###__VERSION__### (C) Adrian Ulrich\n";
+warn "tunes2pod.pl Version ###__VERSION__### (C) Adrian Ulrich\n";
 
 $opts{mount} = $ENV{IPOD_MOUNTPOINT};
 
@@ -63,18 +63,18 @@ sub convert {
 	#We disabled all autosyncing (_no_sync set to 1), so we do a test
 	#ourself
 	if(!$opts{force} && !(GNUpod::FooBar::ItunesDBNeedsSync($con))) {
-		print "I don't think that you have to run tunes2pod.pl\n";
-		print "The GNUtunesDB looks up-to-date\n";
-		print "\n";
-		print "If you think i'm wrong, use '$0 --force'\n";
+		warn "I don't think that you have to run tunes2pod.pl\n";
+		warn "The GNUtunesDB looks up-to-date\n";
+		warn "\n";
+		warn "If you think i'm wrong, use '$0 --force'\n";
 		exit(1);
 	}
 	
 	if($opts{'low_ram_attr'}) {
-		print "> Parsing GNUtunesDB.xml document to prepare merge of limited attributes...\n";
+		warn "> Parsing GNUtunesDB.xml document to prepare merge of limited attributes...\n";
 		GNUpod::XMLhelper::doxml($con->{xml}) or usage("Could not read $con->{xml}, did you run gnupod_INIT.pl ?");
 		GNUpod::XMLhelper::resetxml();
-		print "\r> ".$xml_files_parsed." files parsed, converting iTunesDB...\n";
+		warn "\r> ".$xml_files_parsed." files parsed, converting iTunesDB...\n";
 	}
 
 	open(ITUNES, $con->{itunesdb}) or usage("Could not open $con->{itunesdb}");
@@ -105,7 +105,7 @@ sub convert {
 	$opts{_no_cstest} = 1;
 	GNUpod::FooBar::connect(\%opts);
 	
-	print "\n Done\n";
+	warn "\n Done\n";
 	close(ITUNES) or die "Failed to close filehandle of $con->{itunesdb} : $!\n";
 	exit(0);
 }
@@ -186,7 +186,7 @@ sub MhsdStart {
 	my $old  = $self->{mode};
 	$self->{mode} = $type;
 	
-	if($old == MODE_SONGS) { print "\r> $self->{count_songs_done} of $self->{count_songs_total} files found, searching playlists\n" }
+	if($old == MODE_SONGS) { warn "\r> $self->{count_songs_done} of $self->{count_songs_total} files found, searching playlists\n" }
 }
 
 #######################################################################
@@ -211,7 +211,7 @@ sub MhitEnd {
 		$self->{ctx} = ();                                                # And drop this buffer
 		my $i = ++$self->{count_songs_done};
 		if($i % 32 == 0) {
-			printf("\r> %d files left, %d%% done    ", $self->{count_songs_total}-$i, ($i/(1+$self->{count_songs_total})*100));
+			printf STDERR ("\r> %d files left, %d%% done    ", $self->{count_songs_total}-$i, ($i/(1+$self->{count_songs_total})*100));
 		}
 	}
 	else {
@@ -306,7 +306,7 @@ sub MhypEnd {
 			
 			if(ref($self->{playlist}->{spl}->{preferences}) eq "HASH" && ref($self->{playlist}->{spl}->{data}) eq "ARRAY") {
 				# -> Handle this as a smart-playlist
-				print ">> Smart-Playlist '$plname'";
+				warn ">> Smart-Playlist '$plname'";
 				my $pref = $self->{playlist}->{spl}->{preferences};
 				my $ns   = 0;
 				my $nr   = 0;
@@ -322,18 +322,18 @@ sub MhypEnd {
 					GNUpod::XMLhelper::mkfile({splcont=>{id=>$id}}, {splname=>$plname});
 					$ns++;
 				}
-				print " with $nr rules and $ns songs\n";
+				warn " with $nr rules and $ns songs\n";
 			}
 			else {
 				# -> This is a normal playlist
-				print ">> Playlist '$plname'";
+				warn ">> Playlist '$plname'";
 				my $ns = 0;
 				GNUpod::XMLhelper::addpl($plname, {plid=>$self->{playlist}->{plid}});
 				foreach my $id (@{$self->{playlist}->{content}}) {
 					GNUpod::XMLhelper::mkfile({add => { id => $id } },{plname=>$self->{playlist}->{name}});
 					$ns++;
 				}
-				print " with $ns songs\n";
+				warn " with $ns songs\n";
 			}
 		}
 	}
@@ -342,13 +342,13 @@ sub MhypEnd {
 		foreach my $pci (sort keys(%{$self->{pc_playlist}->{lists}})) {
 			my $cl = $self->{pc_playlist}->{lists}->{$pci};
 			my $ns = 0;
-			print ">> Podcast-Playlist '$cl->{name}'";
+			warn ">> Podcast-Playlist '$cl->{name}'";
 			GNUpod::XMLhelper::addpl($cl->{name}, {podcast=>1});
 			foreach my $i (@{$cl->{content}}) {
 				GNUpod::XMLhelper::mkfile({add => { id => $i } }, {plname=>$cl->{name}});
 				$ns ++;
 			}
-			print " with $ns songs\n";
+			warn " with $ns songs\n";
 		}
 	}
 	$self->ResetPlaylists; # Resets podcast and normal playlist data
@@ -370,7 +370,7 @@ sub newfile {
 	my $path  = $file->{path};
 
 	$xml_files_parsed++;
-	print "\r> ".$xml_files_parsed." files parsed" if $xml_files_parsed % 96 == 0;
+	warn "\r> ".$xml_files_parsed." files parsed" if $xml_files_parsed % 96 == 0;
 
 	return unless $path;
 	$gtdb->{$path} = {};
