@@ -26,32 +26,27 @@
 use strict;
 use warnings;
 use GNUpod::XMLhelper;
-#use GNUpod::FooBar;
 use GNUpod::FindHelper;
 #use GNUpod::ArtworkDB;
 use Getopt::Long;
 
-#use Text::CharWidth;
+my $programName = "gnupod_find.pl";
 
-my $fullversionstring = "gnupod_find.pl Version ###__VERSION__### (C) Heinrich Langos";
-
-#use Data::Dumper;
-#$Data::Dumper::Sortkeys = 1;
-#$Data::Dumper::Terse = 1;
+my $fullversionstring = "$programName Version ###__VERSION__### (C) Heinrich Langos";
 
 use vars qw(%opts);
 
 $opts{mount} = $ENV{IPOD_MOUNTPOINT};
 
 
-my $getoptres = GetOptions(\%opts, "version", "help|h", "list-attributes", "mount|m=s",
+my $getoptres = GetOptions(\%opts, "version", "help|h", "mount|m=s",
 	@GNUpod::FindHelper::findoptions
+
 );
+
+# take model and mountpoint from gnupod_search preferences
 GNUpod::FooBar::GetConfig(\%opts, {mount=>'s', model=>'s'}, "gnupod_search");
 
-
-#print Dumper(\%opts);
-#print "Options: ".Dumper(\%opts);
 
 usage()   if ($opts{help} || !$getoptres );
 version() if $opts{version};
@@ -128,10 +123,9 @@ $rtxt = "" if (! defined($rtxt));
 die << "EOF";
 $fullversionstring
 $rtxt
-Usage: gnupod_find.pl ...
+Usage: $programName ...
 
    -h, --help              display this help and exit
-       --list-attributes   display all attributes for filter/view/sort
        --version           output version information and exit
    -m, --mount=directory   iPod mountpoint, default is \$IPOD_MOUNTPOINT
 $GNUpod::FindHelper::findhelp
@@ -149,4 +143,33 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 EOF
 }
+
+=head1 NAME
+
+gnupod_find.pl  - Find songs on your iPod
+
+=head1 SYNOPSIS
+
+gnupod_find.pl [OPTION]
+
+=head1 DESCRIPTION
+
+C<gnupod_find.pl> searches the F<GNUtunesDB.xml> file for matches to its
+arguments and shows those files.
+
+=head1 OPTIONS
+
+###___PODINSERT man/gnupod_find-options.pod___###
+
+###___PODINSERT man/general-tools.pod___###
+
+=head1 AUTHORS
+
+Written by Eric C. Cooper <ecc at cmu dot edu> - Contributed to the 'old' GNUpod (< 0.9)
+
+Adrian Ulrich <pab at blinkenlights dot ch> - Main author of GNUpod
+
+Heinrich Langos <henrik-gnupod at prak dot org> - Some patches
+
+###___PODINSERT man/footer.pod___###
 

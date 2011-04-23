@@ -30,16 +30,21 @@ use GNUpod::FindHelper;
 use GNUpod::ArtworkDB;
 use Getopt::Long;
 
-my $fullversionstring = "gnupod_delete.pl Version ###__VERSION__### (C) Heinrich Langos";
+my $programName = "gnupod_delete.pl";
+
+my $fullversionstring = "$programName Version ###__VERSION__### (C) Heinrich Langos";
 
 use vars qw(%opts @keeplist);
 
 $opts{mount} = $ENV{IPOD_MOUNTPOINT};
 
-my $getoptres = GetOptions(\%opts, "version", "help|h", "list-attributes", "mount|m=s", "interactive|i", "force",
+my $getoptres = GetOptions(\%opts, "version", "help|h", "mount|m=s",
+	"interactive|i", "force",
 	"playlist|p=s",
 	@GNUpod::FindHelper::findoptions
 );
+
+# take model and mountpoint from gnupod_search preferences
 GNUpod::FooBar::GetConfig(\%opts, {mount=>'s', model=>'s'}, "gnupod_search");
 
 
@@ -67,7 +72,9 @@ usage($connection->{status}."\n") if $connection->{status};
 
 my $AWDB;
 
-my $firstrun = 1; #first run will look for the songs and playlists to delete. the second run will delete them.
+my $firstrun = 1;
+
+
 my $deletionconfirmed = 0;
 
 main($connection);
@@ -88,8 +95,9 @@ sub main {
 
 	} else {
 
+		# sort results list according to users wishes
 		@resultlist = sort GNUpod::FindHelper::comparesongs @resultlist;
-
+		# crop results according to users wishes
 		@resultlist = GNUpod::FindHelper::croplist({results => \@resultlist});
 
 	}
@@ -197,10 +205,9 @@ $rtxt = "" if (! defined($rtxt));
 die << "EOF";
 $fullversionstring
 $rtxt
-Usage: gnupod_delete.pl ...
+Usage: $programName ...
 
    -h, --help              display this help and exit
-       --list-attributes   display all attributes for filter/view/sort
        --version           output version information and exit
    -m, --mount=directory   iPod mountpoint, default is \$IPOD_MOUNTPOINT
    -i, --interactive       always ask before deleting
@@ -222,3 +229,76 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 EOF
 }
 
+=head1 NAME
+
+gnupod_delete.pl  - delete songs from your iPod
+
+=head1 SYNOPSIS
+
+gnupod_delete.pl [OPTION]
+
+=head1 DESCRIPTION
+
+C<gnupod_delete.pl> searches the F<GNUtunesDB.xml> file for matches to its
+arguments and deletes those files from your ipod.
+
+=head1 OPTIONS
+
+###___PODINSERT man/gnupod_find-options.pod___###
+
+=head2 Interaction Options
+
+By default gnupod_delete.pl will only delete up to 20 songs without asking.
+If there are more than 20 matches then gnupod_delete.pl will present
+the matches and ask the user to confirm the deletion.
+
+=over 4
+
+=item -i, --interactive
+
+Always ask the user before deleting the matching songs. No matter how
+few matches there are.
+
+=item --force
+
+Never ask the user before deleting. No matter how many songs will be
+deleted.
+
+=back
+
+=head2 Playlist option
+
+=over 4
+
+=item --playlist <regex>
+
+Deletes a playlist that matches regex instead of the actual songs.
+
+Example
+  --playlist news
+  Will delete playlists that contain the word "news" in their name.
+
+Be careful to anchor the regex if you want exact matches.
+The example above would also match a playlist named "mynewstuff" and one named "sinews".
+
+=back
+
+###___PODINSERT man/general-tools.pod___###
+
+=head1 AUTHORS
+
+Written by Eric C. Cooper <ecc at cmu dot edu> - Contributed to the 'old' GNUpod (< 0.9)
+
+Adrian Ulrich <pab at blinkenlights dot ch> - Main author of GNUpod
+
+Heinrich Langos <henrik-gnupod at prak dot org> - Some patches
+
+###___PODINSERT man/footer.pod___###
+
+
+
+#first run will look for the songs and playlists to delete.
+#the second run will delete the files from the disk and will
+#generate the new xml file.
+#A keeplist of file ids is generated during the second run
+#in order to remove files not on that list from all playlists.
