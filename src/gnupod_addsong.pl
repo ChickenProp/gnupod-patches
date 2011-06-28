@@ -379,16 +379,39 @@ sub create_playlist_now {
 
 ## XML Handlers ##
 sub newfile {
-	$dupdb_normal{lc($_[0]->{file}->{title})."/$_[0]->{file}->{bitrate}/$_[0]->{file}->{time}/$_[0]->{file}->{filesize}"}= $_[0]->{file}->{id}||-1;
+	my %file = %{$_[0]->{file}};
+
+	# If title/artist/album are empty, they may not be present in
+	# GNUtunesDB.xml, and then won't be present in %file.  Maybe
+	# XMLhelper.pm should guarantee that certain keys be defined, even if
+	# they're not in GNUtunesDB.xml?
+	my $title = defined $file{title} ? lc($file{title}) : "";
+	my $artist = defined $file{artist} ? lc($file{artist}) : "";
+	my $album = defined $file{album} ? lc($file{album}) : "";
+
+	# If bitrate/time/filesize aren't defined, something is definitely
+	# wrong, so giving the warning is a good thing. Dying might be
+	# preferable, but would that leave the ipod in a well-defined state?
+	my $bitrate = $file{bitrate};
+	my $time = $file{time};
+	my $filesize = $file{filesize};
+
+	# We've been guarding against undefined id for a while, so keep doing
+	# it.
+	my $id = $file{id} || -1;
+
+	#$dupdb_normal{lc($file{title})."/$file{bitrate}/$file{time}/$file{filesize}"}= $file{id}||-1;
+	$dupdb_normal{"$title/$bitrate/$time/$filesize"} = $id;
 
 	#This is worse than _normal, but the only way to detect dups *before* re-encoding...
-	$dupdb_lazy{lc($_[0]->{file}->{title})."/".lc($_[0]->{file}->{album})."/".lc($_[0]->{file}->{artist})}= $_[0]->{file}->{id}||-1;
+	#$dupdb_lazy{lc($file{title})."/".lc($file{album})."/".lc($file{artist})}= $file{id}||-1;
+	$dupdb_lazy{"$title/$album/$artist"} = $id;
 	
 	#Add podcast infos if it is an podcast
-	if($_[0]->{file}->{podcastguid}) {
-		$dupdb_podcast{$_[0]->{file}->{podcastguid}."\0".$_[0]->{file}->{podcastrss}}++;
+	if($file{podcastguid}) {
+		$dupdb_podcast{$file{podcastguid}."\0".$file{podcastrss}}++;
 	}
-	$AWDB->KeepImage($_[0]->{file}->{dbid_1});
+	$AWDB->KeepImage($file{dbid_1});
 	GNUpod::XMLhelper::mkfile($_[0],{addid=>1});
 }
 
